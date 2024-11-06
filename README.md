@@ -72,35 +72,29 @@ The action follows these rules for version comparison and bumping:
 
 ## Examples
 
-### Case 1: `1.0.0-dev4` to `1.0.1`
+#### Case 1: `1.0.0-dev4` to `1.0.1`
 
 - **Current Version**: `1.0.1`
 - **Latest Tag**: `1.0.0-dev4`
 - **Outcome**: `1.0.1` is recognized as a new stable release (higher than `1.0.0-dev4`). The action tags `1.0.1` as the new version.
 
-### Case 2: `1.0.1` to `1.0.2`
+#### Case 2: `1.0.1` to `1.0.2`
 
 - **Current Version**: `1.0.2`
 - **Latest Tag**: `1.0.1`
 - **Outcome**: `1.0.2` is recognized as a new stable release (higher than `1.0.1`). The action tags `1.0.2` as the new version.
 
-### Case 3: `1.0.1-dev1` to `1.0.1-dev1`
+#### Case 3: `1.0.1-dev1` to `1.0.1-dev1`
 
 - **Current Version**: `1.0.1-dev1`
 - **Latest Tag**: `1.0.1-dev1`
 - **Outcome**: The current version matches the latest tag exactly, so no new release is created.
 
-### Case 4: `1.0.1` to `1.0.1-dev1`
+#### Case 4: `1.0.1` to `1.0.1-dev1`
 
 - **Current Version**: `1.0.1` (matches the latest tag `1.0.1`)
 - **Outcome**: The action creates a new `-dev` version and tags it as `1.0.1-dev1` to signify continued development.
 
-## Requirements
-
-This action requires:
-
-- **Python** installed in the workflow environment (as configured in the example).
-- **`toml` library** installed if using `pyproject.toml` for versioning.
 
 ## Notes
 
