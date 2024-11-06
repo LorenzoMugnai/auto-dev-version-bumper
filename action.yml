@@ -1,0 +1,27 @@
+name: "Dev Version Bumper"
+description: "A GitHub Action to automate development version bumping for a python project using Poetry or Pip-based version management."
+inputs:
+  manager:
+    description: "Specify package manager (poetry or pip). Leave blank for auto-detection."
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install Dependencies
+      run: |
+        pip install poetry toml 
+
+    - name: Run Version Bump Script
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python3 scripts/hooks/bump_dev_version.py --manager ${{ inputs.manager }}

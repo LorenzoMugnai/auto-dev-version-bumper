@@ -1,0 +1,27 @@
+name: Version Bump
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  bump_version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Poetry
+        run: |
+          pip install poetry
+
+      - name: Run Version Bump Script
+        run: |
+          python3 scripts/hooks/bump_dev_version.py
