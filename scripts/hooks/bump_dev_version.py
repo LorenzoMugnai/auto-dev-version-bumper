@@ -7,6 +7,22 @@ import sys
 import toml  # Ensure 'toml' library is installed to parse pyproject.toml
 
 
+def is_self_triggered():
+    """Check if the latest commit message indicates a version bump to prevent self-trigger."""
+    try:
+        result = subprocess.run(
+            ["git", "log", "-1", "--pretty=%B"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        latest_commit_message = result.stdout.strip()
+        return "Bump version to" in latest_commit_message
+    except subprocess.CalledProcessError as e:
+        print("Error retrieving latest commit message:", e)
+        return False
+
+
 def detect_package_manager():
     """Detect the package manager based on project files. Default to pip if Poetry isn't detected."""
     if os.path.exists("pyproject.toml"):
@@ -285,6 +301,12 @@ def commit_and_tag_version(new_version):
 
 
 def main():
+    if is_self_triggered():
+        print(
+            "Detected self-trigger due to version bump commit. Exiting to prevent loop."
+        )
+        return
+
     parser = argparse.ArgumentParser(
         description="Bump version for a project using Poetry or Pip."
     )
@@ -328,10 +350,6 @@ def main():
 
         # Commit and tag the new dev version
         commit_and_tag_version(new_version)
-
-
-if __name__ == "__main__":
-    main()
 
 
 if __name__ == "__main__":

@@ -60,6 +60,32 @@ jobs:
 
 - **`manager`** (optional): Specify the package manager to use (`poetry` or `pip`). If left blank, the action will auto-detect the package manager based on the project files.
 
+> [!WARNING]
+> Workflow Triggering: Be cautious when using `auto-dev-version-bumper` on branches that perform automatic pushes, as this can inadvertently cause an infinite loop of workflow triggers. The action itself commits and pushes new versions, which may trigger subsequent workflows if not properly configured. To prevent this, add a condition to your workflow to skip runs initiated by version bump commits. For example, you can check the commit message to ensure the workflow only triggers on non-bump commits. This setup is crucial for ensuring smooth operation on development branches without risking self-triggering loops. See the example below for reference.
+>```yaml
+>name: Auto Dev Version Bumper
+>
+>on:
+>  push:
+>    branches:
+>      - develop
+>
+>jobs:
+>  version-bump:
+>    if: "!contains(github.event.head_commit.message, 'Bump version')"
+>    runs-on: ubuntu-latest
+>    steps:
+>      - name: Checkout repository
+>        uses: actions/checkout@v4
+>
+>      - name: Set up Python
+>        uses: actions/setup-python@v5
+>        with:
+>          python-version: '3.x'
+>
+>      - name: Run auto-dev-version-bumper
+>        uses: LorenzoMugnai/auto-dev-version-bumper@main
+>```
 
 ## Version Bumping Rules
 
