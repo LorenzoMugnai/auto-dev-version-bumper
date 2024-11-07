@@ -54,6 +54,8 @@ jobs:
 
       - name: Run auto-dev-version-bumper
         uses: LorenzoMugnai/auto-dev-version-bumper@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
 ```
 
 ## Inputs
@@ -72,7 +74,7 @@ jobs:
 >
 >jobs:
 >  version-bump:
->    if: "!contains(github.event.head_commit.message, 'Bump version')"
+>    if: ${{ !contains(github.event.head_commit.message, 'Bump version to') }} 
 >    runs-on: ubuntu-latest
 >    steps:
 >      - name: Checkout repository
@@ -85,6 +87,8 @@ jobs:
 >
 >      - name: Run auto-dev-version-bumper
 >        uses: LorenzoMugnai/auto-dev-version-bumper@main
+>        env:
+>          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass GITHUB_TOKEN explicitly
 >```
 
 ## Version Bumping Rules
