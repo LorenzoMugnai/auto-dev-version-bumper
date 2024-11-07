@@ -24,7 +24,8 @@ runs:
     - name: Install Dependencies
       run: |
         pip install poetry toml 
-
+      shell: bash
+    
     - name: Configure Git user
       run: |
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -33,7 +34,7 @@ runs:
   
     - name: Run Version Bump Script
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
       run: |
         python3 scripts/hooks/bump_dev_version.py --manager ${{ inputs.manager }}
       shell: bash  
