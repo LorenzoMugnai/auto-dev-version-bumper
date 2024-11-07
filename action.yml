@@ -1,9 +1,14 @@
 name: "Dev Version Bumper"
 description: "A GitHub Action to automate development version bumping for a python project using Poetry or Pip-based version management."
+branding:
+  icon: "rocket"  
+  color: "blue"   
+
 inputs:
   manager:
     description: "Specify package manager (poetry or pip). Leave blank for auto-detection."
     required: false
+    default: "" 
 
 runs:
   using: "composite"
