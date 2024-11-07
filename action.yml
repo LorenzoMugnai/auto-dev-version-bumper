@@ -29,9 +29,11 @@ runs:
       run: |
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
-        
+      shell: bash  
+  
     - name: Run Version Bump Script
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         python3 scripts/hooks/bump_dev_version.py --manager ${{ inputs.manager }}
+      shell: bash  
