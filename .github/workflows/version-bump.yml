@@ -33,4 +33,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass GITHUB_TOKEN explicitly
         run: |
-          python3 scripts/hooks/bump_dev_version.py
+          python3 bump_dev_version.py

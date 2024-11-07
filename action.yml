@@ -36,5 +36,5 @@ runs:
       env:
         GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
       run: |
-        python3 scripts/hooks/bump_dev_version.py --manager ${{ inputs.manager }}
+        python3 bump_dev_version.py --manager ${{ inputs.manager }}
       shell: bash  
