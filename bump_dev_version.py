@@ -1,4 +1,3 @@
-import argparse
 import os
 import re
 import subprocess
@@ -307,18 +306,8 @@ def main():
         )
         return
 
-    parser = argparse.ArgumentParser(
-        description="Bump version for a project using Poetry or Pip."
-    )
-    parser.add_argument(
-        "--manager",
-        choices=["poetry", "pip"],
-        help="Specify the package manager to use (poetry or pip).",
-    )
-    args = parser.parse_args()
-
-    # Detect package manager if not specified
-    manager = args.manager or detect_package_manager()
+    # Detect package manager
+    manager = detect_package_manager()
 
     # Get current version
     if manager == "poetry":

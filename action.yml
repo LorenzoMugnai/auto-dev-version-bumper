@@ -6,15 +6,6 @@ branding:
   icon: "rocket"
   color: "blue"
 
-inputs:
-  manager:
-    description: "Specify package manager (poetry or pip). Leave blank for auto-detection."
-    required: false
-    default: ""
-
 runs:
   using: "docker"
   image: "./Dockerfile"
-  args:
-    - "--manager"
-    - ${{ inputs.manager }}
