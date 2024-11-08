@@ -1,6 +1,9 @@
 # Use a Python base image
 FROM python:3.12
 
+# Set PYTHONUNBUFFERED to ensure real-time print output
+ENV PYTHONUNBUFFERED=1
+
 # Install dependencies
 RUN pip install poetry toml
 
