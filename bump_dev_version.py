@@ -220,6 +220,9 @@ def bump_version_pip(new_version):
 def get_latest_git_tag():
     """Retrieve the latest Git tag, if any."""
     try:
+        # Ensure all tags are fetched
+        subprocess.run(["git", "fetch", "--tags"], check=True)
+
         result = subprocess.run(
             ["git", "describe", "--tags", "--abbrev=0"],
             capture_output=True,
@@ -281,23 +284,34 @@ def commit_and_tag_version(new_version, modified_file):
 
         # Commit the changes with a message
         commit_result = subprocess.run(
-            ["git", "commit", "--dry-run", "-m", f"🚀 Bump version to {new_version}"],
+            [
+                "git",
+                "commit",
+                "--dry-run",
+                "-m",
+                f"🚀 Bump version to {new_version}",
+            ],
             capture_output=True,
-            text=True
+            text=True,
         )
         if "nothing to commit" in commit_result.stdout:
             print("No changes detected for commit.")
             return  # No changes, exit function
 
         # Now execute the commit if dry-run succeeded
-        subprocess.run(["git", "commit", "-m", f"🚀 Bump version to {new_version}"], check=True)
+        subprocess.run(
+            ["git", "commit", "-m", f"🚀 Bump version to {new_version}"],
+            check=True,
+        )
 
         # Attempt to create the new tag
         subprocess.run(["git", "tag", f"v{new_version}"], check=True)
         print(f"Created tag v{new_version}.")
 
         # Push the tag first to ensure it succeeds
-        subprocess.run(["git", "push", "origin", f"v{new_version}"], check=True)
+        subprocess.run(
+            ["git", "push", "origin", f"v{new_version}"], check=True
+        )
         print(f"Pushed tag v{new_version}.")
 
         # Only push the commit if tag push was successful
