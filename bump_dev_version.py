@@ -282,7 +282,7 @@ def commit_and_tag_version(new_version, modified_file):
         # Stage only the modified file
         subprocess.run(["git", "add", modified_file], check=True)
 
-        # Commit the changes with a message
+        # Dry run to check for changes
         commit_result = subprocess.run(
             [
                 "git",
@@ -294,29 +294,33 @@ def commit_and_tag_version(new_version, modified_file):
             capture_output=True,
             text=True,
         )
+
+        # If no changes to commit, print message and continue to tagging
         if "nothing to commit" in commit_result.stdout:
-            print("No changes detected for commit.")
-            return  # No changes, exit function
+            print(
+                "No changes detected for commit. Proceeding to tag creation."
+            )
+        else:
+            # Execute the actual commit if there are changes
+            subprocess.run(
+                ["git", "commit", "-m", f"🚀 Bump version to {new_version}"],
+                check=True,
+            )
 
-        # Now execute the commit if dry-run succeeded
-        subprocess.run(
-            ["git", "commit", "-m", f"🚀 Bump version to {new_version}"],
-            check=True,
-        )
-
-        # Attempt to create the new tag
+        # Create the new tag regardless of commit status
         subprocess.run(["git", "tag", f"v{new_version}"], check=True)
         print(f"Created tag v{new_version}.")
 
-        # Push the tag first to ensure it succeeds
+        # Push the tag to ensure it succeeds
         subprocess.run(
             ["git", "push", "origin", f"v{new_version}"], check=True
         )
         print(f"Pushed tag v{new_version}.")
 
-        # Only push the commit if tag push was successful
-        subprocess.run(["git", "push", "origin", "HEAD"], check=True)
-        print("Committed version bump and pushed to repository.")
+        # Only push the commit if changes were made
+        if "nothing to commit" not in commit_result.stdout:
+            subprocess.run(["git", "push", "origin", "HEAD"], check=True)
+            print("Committed version bump and pushed to repository.")
 
     except subprocess.CalledProcessError as e:
         print("Error in tagging or pushing the commit:", e)
