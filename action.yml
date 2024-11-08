@@ -1,40 +1,20 @@
 name: "Dev Version Bumper"
-description: "A GitHub Action to automate development version bumping for a python project using Poetry or Pip-based version management."
+description: "A GitHub Action to automate development version bumping for a Python project using Poetry or Pip-based version management."
 branding:
-  icon: "rocket"  
-  color: "blue"   
+  icon: "rocket"
+  color: "blue"
 
 inputs:
   manager:
     description: "Specify package manager (poetry or pip). Leave blank for auto-detection."
     required: false
-    default: "" 
+    default: ""
 
 runs:
-  using: "composite"
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
-
-    - name: Install Dependencies
-      run: |
-        pip install poetry toml 
-      shell: bash
-    
-    - name: Configure Git user
-      run: |
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git config --global user.name "github-actions[bot]"
-      shell: bash  
-  
-    - name: Run Version Bump Script
-      env:
-        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-      run: |
-        python3 bump_dev_version.py --manager ${{ inputs.manager }}
-      shell: bash  
+  using: "docker"
+  image: "./Dockerfile"
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  args:
+    - "--manager"
+    - ${{ inputs.manager }}
