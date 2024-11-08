@@ -24,6 +24,6 @@ jobs:
 
       # Step 2: Run the auto-dev-version-bumper action in Docker
       - name: Run auto-dev-version-bumper
-        uses: LorenzoMugnai/auto-dev-version-bumper@main
+        uses: LorenzoMugnai/auto-dev-version-bumper@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass GITHUB_TOKEN explicitly

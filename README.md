@@ -53,7 +53,7 @@ jobs:
           python-version: '3.x'
 
       - name: Run auto-dev-version-bumper
-        uses: LorenzoMugnai/auto-dev-version-bumper@main
+        uses: LorenzoMugnai/auto-dev-version-bumper@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
 ```
@@ -86,7 +86,7 @@ jobs:
 >          python-version: '3.x'
 >
 >      - name: Run auto-dev-version-bumper
->        uses: LorenzoMugnai/auto-dev-version-bumper@main
+>        uses: LorenzoMugnai/auto-dev-version-bumper@v1
 >        env:
 >          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass GITHUB_TOKEN explicitly
 >```
