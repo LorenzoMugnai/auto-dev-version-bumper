@@ -46,6 +46,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -79,6 +81,9 @@ jobs:
 >    steps:
 >      - name: Checkout repository
 >        uses: actions/checkout@v4
+>        with:
+>          fetch-depth: 0 
+>
 >
 >      - name: Set up Python
 >        uses: actions/setup-python@v5

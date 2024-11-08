@@ -20,6 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0 
           token: ${{ secrets.GITHUB_TOKEN }}  # Ensures git push and tag operations are authenticated
 
       # Step 2: Run the auto-dev-version-bumper action in Docker
