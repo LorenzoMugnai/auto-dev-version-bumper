@@ -147,16 +147,17 @@ def increment_dev_version(version):
 
 
 def bump_version_poetry(new_version):
-    """Use Poetry to set the new version."""
+    """Use Poetry to set the new version and return the modified file."""
     try:
         subprocess.run(["poetry", "version", new_version], check=True)
+        return "pyproject.toml"
     except subprocess.CalledProcessError as e:
         print("Error bumping version with Poetry:", e)
         sys.exit(1)
 
 
 def bump_version_pip(new_version):
-    """Update the version in the identified version source for pip-based projects."""
+    """Update the version in the identified version source for pip-based projects and return the modified file."""
     version_file, file_type = get_version_file()
 
     # Update version in common version files
@@ -172,8 +173,8 @@ def bump_version_pip(new_version):
         with open(version_file, "w") as file:
             file.write(new_content)
         print(f"Updated version in {version_file} to {new_version}")
+        return version_file
 
-    # Update version in pyproject.toml
     elif file_type == "pyproject":
         with open(version_file, "r") as file:
             pyproject_content = toml.load(file)
@@ -181,8 +182,8 @@ def bump_version_pip(new_version):
         with open(version_file, "w") as file:
             toml.dump(pyproject_content, file)
         print(f"Updated version in pyproject.toml to {new_version}")
+        return "pyproject.toml"
 
-    # Update version in setup.py
     elif file_type == "setup_py":
         with open(version_file, "r") as file:
             content = file.read()
@@ -195,8 +196,8 @@ def bump_version_pip(new_version):
         with open(version_file, "w") as file:
             file.write(new_content)
         print(f"Updated version in setup.py to {new_version}")
+        return "setup.py"
 
-    # Update version in setup.cfg
     elif file_type == "setup_cfg":
         with open(version_file, "r") as file:
             content = file.read()
@@ -209,11 +210,11 @@ def bump_version_pip(new_version):
         with open(version_file, "w") as file:
             file.write(new_content)
         print(f"Updated version in setup.cfg to {new_version}")
+        return "setup.cfg"
 
     else:
         print("No suitable version file found for pip-based project.")
         sys.exit(1)
-
 
 def get_latest_git_tag():
     """Retrieve the latest Git tag, if any."""
@@ -271,11 +272,11 @@ def is_new_version(current_version, latest_tag):
         return True
 
 
-def commit_and_tag_version(new_version):
+def commit_and_tag_version(new_version, modified_file):
     """Commit the version bump to the repository and create a Git tag for the new version."""
     try:
-        # Stage the changes
-        subprocess.run(["git", "add", "."], check=True)
+        # Stage only the modified file
+        subprocess.run(["git", "add", modified_file], check=True)
 
         # Commit the changes with a message
         subprocess.run(
@@ -297,7 +298,6 @@ def commit_and_tag_version(new_version):
     except subprocess.CalledProcessError as e:
         print("Error committing and tagging the version:", e)
         sys.exit(1)
-
 
 def main():
     if is_self_triggered():
@@ -324,7 +324,8 @@ def main():
         print(
             f"Current version {current_version} is a new release compared to latest tag {latest_tag}."
         )
-        commit_and_tag_version(current_version)
+        modified_file = "pyproject.toml" if manager == "poetry" else get_version_file()[0]
+        commit_and_tag_version(current_version, modified_file)
     else:
         # Current version matches latest tag, increment to a dev version
         new_version = increment_dev_version(current_version)
@@ -332,13 +333,14 @@ def main():
             f"Current version matches latest tag. Incrementing to development version: {new_version}"
         )
 
+        # Determine which file to modify based on package manager
         if manager == "poetry":
-            bump_version_poetry(new_version)
+            modified_file = bump_version_poetry(new_version)
         elif manager == "pip":
-            bump_version_pip(new_version)
+            modified_file = bump_version_pip(new_version)
 
         # Commit and tag the new dev version
-        commit_and_tag_version(new_version)
+        commit_and_tag_version(new_version, modified_file)
 
 
 if __name__ == "__main__":
