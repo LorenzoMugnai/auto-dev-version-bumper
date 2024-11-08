@@ -216,6 +216,7 @@ def bump_version_pip(new_version):
         print("No suitable version file found for pip-based project.")
         sys.exit(1)
 
+
 def get_latest_git_tag():
     """Retrieve the latest Git tag, if any."""
     try:
@@ -273,7 +274,7 @@ def is_new_version(current_version, latest_tag):
 
 
 def commit_and_tag_version(new_version, modified_file):
-    """Commit the version bump to the repository and create a Git tag for the new version."""
+    """Create a Git tag for the new version, then commit and push the version bump to the repository only if tagging is successful."""
     try:
         # Stage only the modified file
         subprocess.run(["git", "add", modified_file], check=True)
@@ -284,20 +285,29 @@ def commit_and_tag_version(new_version, modified_file):
             check=True,
         )
 
-        # Create a new tag for the version
+        # Attempt to create the new tag
         subprocess.run(["git", "tag", f"v{new_version}"], check=True)
+        print(f"Created tag v{new_version}.")
 
-        # Push both commit and tags to the repository
-        subprocess.run(["git", "push", "origin", "HEAD"], check=True)
+        # Push the tag first to ensure it succeeds
         subprocess.run(
             ["git", "push", "origin", f"v{new_version}"], check=True
         )
+        print(f"Pushed tag v{new_version}.")
 
-        print(f"Committed version bump and created tag v{new_version}.")
+        # Only push the commit if tag push was successful
+        subprocess.run(["git", "push", "origin", "HEAD"], check=True)
+        print(f"Committed version bump and pushed to repository.")
 
     except subprocess.CalledProcessError as e:
-        print("Error committing and tagging the version:", e)
+        print("Error in tagging or pushing the commit:", e)
+
+        # Clean up: delete the local tag if created but not pushed
+        subprocess.run(["git", "tag", "-d", f"v{new_version}"], check=False)
+
+        # Abort with exit status to indicate failure
         sys.exit(1)
+
 
 def main():
     if is_self_triggered():
@@ -324,7 +334,9 @@ def main():
         print(
             f"Current version {current_version} is a new release compared to latest tag {latest_tag}."
         )
-        modified_file = "pyproject.toml" if manager == "poetry" else get_version_file()[0]
+        modified_file = (
+            "pyproject.toml" if manager == "poetry" else get_version_file()[0]
+        )
         commit_and_tag_version(current_version, modified_file)
     else:
         # Current version matches latest tag, increment to a dev version
