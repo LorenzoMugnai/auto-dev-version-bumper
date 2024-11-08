@@ -1,3 +1,4 @@
+
 # Use a Python base image
 FROM python:3.12
 
@@ -9,7 +10,8 @@ COPY bump_dev_version.py /bump_dev_version.py
 
 # Set up Git user for commits
 RUN git config --global user.email "github-actions[bot]@users.noreply.github.com" && \
-    git config --global user.name "github-actions[bot]"
+    git config --global user.name "github-actions[bot]" &&\
+    git config --global --add safe.directory /github/workspace
 
 # Accept GITHUB_TOKEN as an argument and set it as an environment variable
 ARG GITHUB_TOKEN
