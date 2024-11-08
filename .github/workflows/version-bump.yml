@@ -1,3 +1,5 @@
+# .github/workflows/version_bump.yml
+
 name: Version Bump
 
 on:
@@ -20,34 +22,10 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}  # Ensures git push and tag operations are authenticated
 
-      # Step 2: Set up Python environment
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      # Step 2: Run the auto-dev-version-bumper action in Docker
+      - name: Run auto-dev-version-bumper
+        uses: LorenzoMugnai/auto-dev-version-bumper@main
         with:
-          python-version: '3.x'
-
-      # Step 3: Install Poetry
-      - name: Install Poetry
-        run: |
-          pip install poetry
-
-      # Step 4: Configure Git user
-      - name: Configure Git user
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-
-      # Step 5: Set Git remote URL with GITHUB_TOKEN
-      # This enables git commands to use GITHUB_TOKEN for authentication
-      - name: Set up Git remote with token
+          manager: poetry
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git remote set-url origin "https://${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-
-      # Step 6: Run Version Bump Script
-      - name: Run Version Bump Script
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python3 bump_dev_version.py
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass GITHUB_TOKEN explicitly

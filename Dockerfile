@@ -11,8 +11,11 @@ COPY bump_dev_version.py /bump_dev_version.py
 RUN git config --global user.email "github-actions[bot]@users.noreply.github.com" && \
     git config --global user.name "github-actions[bot]"
 
-# Configure Git to use the GITHUB_TOKEN for authentication
+# Accept GITHUB_TOKEN as an argument and set it as an environment variable
 ARG GITHUB_TOKEN
+ENV GITHUB_TOKEN=${GITHUB_TOKEN}
+
+# Configure Git to use the GITHUB_TOKEN for authentication
 RUN git config --global credential.helper store && \
     echo "https://${GITHUB_TOKEN}:x-oauth-basic@github.com" > ~/.git-credentials
 

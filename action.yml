@@ -1,3 +1,5 @@
+# action.yml
+
 name: "Dev Version Bumper"
 description: "A GitHub Action to automate development version bumping for a Python project using Poetry or Pip-based version management."
 branding:
@@ -13,8 +15,6 @@ inputs:
 runs:
   using: "docker"
   image: "./Dockerfile"
-  env:
-    GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
   args:
     - "--manager"
     - ${{ inputs.manager }}
