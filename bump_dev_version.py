@@ -280,24 +280,29 @@ def commit_and_tag_version(new_version, modified_file):
         subprocess.run(["git", "add", modified_file], check=True)
 
         # Commit the changes with a message
-        subprocess.run(
-            ["git", "commit", "-m", f"🚀 Bump version to {new_version}"],
-            check=True,
+        commit_result = subprocess.run(
+            ["git", "commit", "--dry-run", "-m", f"🚀 Bump version to {new_version}"],
+            capture_output=True,
+            text=True
         )
+        if "nothing to commit" in commit_result.stdout:
+            print("No changes detected for commit.")
+            return  # No changes, exit function
+
+        # Now execute the commit if dry-run succeeded
+        subprocess.run(["git", "commit", "-m", f"🚀 Bump version to {new_version}"], check=True)
 
         # Attempt to create the new tag
         subprocess.run(["git", "tag", f"v{new_version}"], check=True)
         print(f"Created tag v{new_version}.")
 
         # Push the tag first to ensure it succeeds
-        subprocess.run(
-            ["git", "push", "origin", f"v{new_version}"], check=True
-        )
+        subprocess.run(["git", "push", "origin", f"v{new_version}"], check=True)
         print(f"Pushed tag v{new_version}.")
 
         # Only push the commit if tag push was successful
         subprocess.run(["git", "push", "origin", "HEAD"], check=True)
-        print(f"Committed version bump and pushed to repository.")
+        print("Committed version bump and pushed to repository.")
 
     except subprocess.CalledProcessError as e:
         print("Error in tagging or pushing the commit:", e)
