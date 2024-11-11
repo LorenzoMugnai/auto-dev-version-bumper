@@ -251,31 +251,36 @@ def version_to_tuple(version):
 def is_new_version(current_version, latest_tag):
     """Compare current version with the latest Git tag version, handling -dev suffixes correctly."""
 
-    if latest_tag:
-        # Strip 'v' from the latest tag and convert both to tuples
-        latest_version_tuple, latest_dev = version_to_tuple(
-            latest_tag.lstrip("v")
-        )
-        current_version_tuple, current_dev = version_to_tuple(current_version)
-
-        # Compare base versions first
-        if current_version_tuple > latest_version_tuple:
-            return True
-        elif current_version_tuple < latest_version_tuple:
-            return False
-        else:
-            # If base versions are equal, handle dev suffix comparison
-            if current_dev is None:  # current version is stable (e.g., 1.0.0)
-                return True
-            elif (
-                latest_dev is None
-            ):  # latest version is stable but current is a dev version
-                return False
-            else:
-                return current_dev > latest_dev  # Compare dev suffixes
-    else:
+    if not latest_tag:
         # No previous tag, so any current version is new
         return True
+
+    # Strip 'v' from the latest tag if present
+    latest_tag = latest_tag.lstrip("v")
+
+    # Direct equality check
+    if current_version == latest_tag:
+        return False  # They are the same, so it's not a new version
+
+    # Convert to tuples for comparison
+    latest_version_tuple, latest_dev = version_to_tuple(latest_tag)
+    current_version_tuple, current_dev = version_to_tuple(current_version)
+
+    # Compare base versions first
+    if current_version_tuple > latest_version_tuple:
+        return True
+    elif current_version_tuple < latest_version_tuple:
+        return False
+
+    # If base versions are equal, handle dev suffix comparison
+    if current_dev is None:  # current version is stable (e.g., 1.0.0)
+        return True
+    elif (
+        latest_dev is None
+    ):  # latest version is stable but current is a dev version
+        return False
+    else:
+        return current_dev > latest_dev  # Compare dev suffixes
 
 
 def commit_and_tag_version(new_version, modified_file):
