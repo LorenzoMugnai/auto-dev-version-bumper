@@ -218,7 +218,7 @@ def bump_version_pip(new_version):
 
 
 def get_latest_git_tag():
-    """Retrieve the latest Git tag, if any."""
+    """Retrieve the latest Git tag, without a 'v' prefix if present."""
     try:
         # Ensure all tags are fetched
         subprocess.run(["git", "fetch", "--tags"], check=True)
@@ -229,7 +229,9 @@ def get_latest_git_tag():
             text=True,
             check=True,
         )
-        return result.stdout.strip()
+
+        tag = result.stdout.strip()
+        return tag[1:] if tag.startswith("v") else tag  # Remove 'v' if present
     except subprocess.CalledProcessError:
         print("No tags found in the repository.")
         return None
