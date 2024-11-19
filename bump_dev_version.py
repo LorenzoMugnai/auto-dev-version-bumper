@@ -132,14 +132,14 @@ def get_current_version_pip():
     sys.exit(1)
 
 
-def increment_dev_version(version):
+def increment_dev_version(version, suffix="-dev"):
     """Increment the development version for a version string."""
     match = re.match(
-        r"^(?P<base>\d+\.\d+\.\d+)(?:-dev(?P<num>\d+))?$", version
+        rf"^(?P<base>\d+\.\d+\.\d+)(?:{re.escape(suffix)}(?P<num>\d+))?$", version
     )
     if match:
         base, num = match.group("base"), match.group("num")
-        new_version = f"{base}-dev{int(num) + 1 if num else 1}"
+        new_version = f"{base}{suffix}{int(num) + 1 if num else 1}"
         return new_version
     else:
         print(f"Version '{version}' format error.")
@@ -346,6 +346,9 @@ def main():
         )
         return
 
+    # Get suffix from the environment variable passed from the action
+    dev_suffix = os.getenv("DEV_SUFFIX", "-dev")
+
     # Detect package manager
     manager = detect_package_manager()
 
@@ -360,7 +363,6 @@ def main():
 
     # Check if the current version is already a new stable release
     if is_new_version(current_version, latest_tag):
-        # Current version is a new release, tag it directly
         print(
             f"Current version {current_version} is a new release compared to latest tag {latest_tag}."
         )
@@ -369,8 +371,8 @@ def main():
         )
         commit_and_tag_version(current_version, modified_file)
     else:
-        # Current version matches latest tag, increment to a dev version
-        new_version = increment_dev_version(current_version)
+        # Current version matches latest tag, increment to a custom dev version
+        new_version = increment_dev_version(current_version, suffix=dev_suffix)
         print(
             f"Current version matches latest tag. Incrementing to development version: {new_version}"
         )
@@ -387,3 +389,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

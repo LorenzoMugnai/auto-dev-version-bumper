@@ -49,23 +49,21 @@ jobs:
         with:
           fetch-depth: 0 
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
       - name: Run auto-dev-version-bumper
         uses: LorenzoMugnai/auto-dev-version-bumper@v1
+        with:
+          dev_suffix: "-beta"  # Optional: Customize the development suffix (defaults to "-dev")
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
 ```
 
 ## Inputs
 
-- **`manager`** (optional): Specify the package manager to use (`poetry` or `pip`). If left blank, the action will auto-detect the package manager based on the project files.
+- **`dev_suffix`** (optional): specifies the suffix for development versions. Default is `-dev`. You can customize this suffix to match your project's versioning scheme (e.g., `-beta`, `-alpha`, etc.).
 
 > [!WARNING]
 > Workflow Triggering: Be cautious when using `auto-dev-version-bumper` on branches that perform automatic pushes, as this can inadvertently cause an infinite loop of workflow triggers. The action itself commits and pushes new versions, which may trigger subsequent workflows if not properly configured. To prevent this, add a condition to your workflow to skip runs initiated by version bump commits. For example, you can check the commit message to ensure the workflow only triggers on non-bump commits. This setup is crucial for ensuring smooth operation on development branches without risking self-triggering loops. See the example below for reference.
+
 >```yaml
 >name: Auto Dev Version Bumper
 >
@@ -84,14 +82,10 @@ jobs:
 >        with:
 >          fetch-depth: 0 
 >
->
->      - name: Set up Python
->        uses: actions/setup-python@v5
->        with:
->          python-version: '3.x'
->
 >      - name: Run auto-dev-version-bumper
 >        uses: LorenzoMugnai/auto-dev-version-bumper@v1
+>        with:
+>          dev_suffix: "-beta"  # Optional: Customize the development suffix (defaults to "-dev")
 >        env:
 >          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass GITHUB_TOKEN explicitly
 >```
@@ -107,29 +101,29 @@ The action follows these rules for version comparison and bumping:
 
 ## Examples
 
-#### Case 1: `1.0.0-dev4` to `1.0.1`
+### Case 1: stable release to first development version
+
+- **Current Version**: `1.0.1` 
+- **Latest Tag**: `1.0.1`
+- **Outcome**: The action creates a new `-dev` version and tags it as `1.0.1-dev1` to signify continued development.
+
+### Case 2: incrementing a development version
+
+- **Current Version**: `1.0.1-dev1`
+- **Latest Tag**: `1.0.1-dev1`
+- **Outcome**: The current version matches the latest tag exactly, so the action updates the version to `1.0.1-dev2`, creates a tag and pushes the changes.
+
+### Case 3: development to new stable release
 
 - **Current Version**: `1.0.1`
 - **Latest Tag**: `1.0.0-dev4`
 - **Outcome**: `1.0.1` is recognized as a new stable release (higher than `1.0.0-dev4`). The action tags `1.0.1` as the new version.
 
-#### Case 2: `1.0.1` to `1.0.2`
+### Case 4: stable release to next stable release
 
 - **Current Version**: `1.0.2`
 - **Latest Tag**: `1.0.1`
 - **Outcome**: `1.0.2` is recognized as a new stable release (higher than `1.0.1`). The action tags `1.0.2` as the new version.
-
-#### Case 3: `1.0.1-dev1` to `1.0.1-dev1`
-
-- **Current Version**: `1.0.1-dev1`
-- **Latest Tag**: `1.0.1-dev1`
-- **Outcome**: The current version matches the latest tag exactly, so no new release is created.
-
-#### Case 4: `1.0.1` to `1.0.1-dev1`
-
-- **Current Version**: `1.0.1` (matches the latest tag `1.0.1`)
-- **Outcome**: The action creates a new `-dev` version and tags it as `1.0.1-dev1` to signify continued development.
-
 
 ## Notes
 

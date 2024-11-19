@@ -1,11 +1,17 @@
-# action.yml
-
 name: "Dev Version Bumper"
 description: "A GitHub Action to automate development version bumping for a Python project using Poetry or Pip-based version management."
 branding:
   icon: "rocket"
   color: "blue"
 
+inputs:
+  dev_suffix:
+    description: "Suffix for development versions (e.g., '-alpha', '-beta'). Defaults to '-dev'."
+    required: false
+    default: "-dev"
+
 runs:
   using: "docker"
   image: "./Dockerfile"
+  args:
+    - ${{ inputs.dev_suffix }}
