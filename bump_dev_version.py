@@ -5,7 +5,6 @@ import sys
 
 import toml  # Ensure 'toml' library is installed to parse pyproject.toml
 
-
 def is_self_triggered():
     """Check if the latest commit message indicates a version bump to prevent self-trigger."""
     try:
@@ -20,7 +19,6 @@ def is_self_triggered():
     except subprocess.CalledProcessError as e:
         print("Error retrieving latest commit message:", e)
         return False
-
 
 def detect_package_manager():
     """Detect the package manager based on project files. Default to pip if Poetry isn't detected."""
@@ -37,7 +35,6 @@ def detect_package_manager():
     # Default to pip if Poetry configuration is not found
     return "pip"
 
-
 def get_current_version_poetry():
     """Retrieve the current version using Poetry."""
     try:
@@ -51,7 +48,6 @@ def get_current_version_poetry():
     except subprocess.CalledProcessError as e:
         print("Error fetching current version with Poetry:", e)
         sys.exit(1)
-
 
 def get_version_file():
     """Identify the primary file used to store version information in a pip-based project."""
@@ -84,7 +80,6 @@ def get_version_file():
         "No suitable version file found. Please ensure a version file, pyproject.toml, setup.py, or setup.cfg is present."
     )
     sys.exit(1)
-
 
 def get_current_version_pip():
     """Retrieve the current version from the identified version source in a pip-based project."""
@@ -131,7 +126,6 @@ def get_current_version_pip():
     print("Version information not found in the detected file.")
     sys.exit(1)
 
-
 def increment_dev_version(version, suffix="-dev"):
     """Increment the development version for a version string."""
     match = re.match(
@@ -145,7 +139,6 @@ def increment_dev_version(version, suffix="-dev"):
         print(f"Version '{version}' format error.")
         sys.exit(1)
 
-
 def bump_version_poetry(new_version):
     """Use Poetry to set the new version and return the modified file."""
     try:
@@ -154,7 +147,6 @@ def bump_version_poetry(new_version):
     except subprocess.CalledProcessError as e:
         print("Error bumping version with Poetry:", e)
         sys.exit(1)
-
 
 def bump_version_pip(new_version):
     """Update the version in the identified version source for pip-based projects and return the modified file."""
@@ -216,7 +208,6 @@ def bump_version_pip(new_version):
         print("No suitable version file found for pip-based project.")
         sys.exit(1)
 
-
 def get_latest_git_tag():
     """Retrieve the latest Git tag, without a 'v' prefix if present."""
     try:
@@ -236,10 +227,9 @@ def get_latest_git_tag():
         print("No tags found in the repository.")
         return None
 
-
-def version_to_tuple(version):
-    """Convert a version string into a tuple of integers and handle -dev suffix."""
-    match = re.match(r"(\d+\.\d+\.\d+)(?:-dev(\d+))?", version)
+def version_to_tuple(version, suffix="-dev"):
+    """Convert a version string into a tuple of integers and handle custom suffix."""
+    match = re.match(rf"(\d+\.\d+\.\d+)(?:{re.escape(suffix)}(\d+))?", version)
     if match:
         base_version = tuple(map(int, match.group(1).split(".")))
         dev_suffix = int(match.group(2)) if match.group(2) else None
@@ -247,10 +237,8 @@ def version_to_tuple(version):
     else:
         raise ValueError(f"Invalid version format: {version}")
 
-
-def is_new_version(current_version, latest_tag):
-    """Compare current version with the latest Git tag version, handling -dev suffixes correctly."""
-
+def is_new_version(current_version, latest_tag, suffix="-dev"):
+    """Compare current version with the latest Git tag version, handling custom suffixes correctly."""
     if not latest_tag:
         # No previous tag, so any current version is new
         return True
@@ -263,8 +251,8 @@ def is_new_version(current_version, latest_tag):
         return False  # They are the same, so it's not a new version
 
     # Convert to tuples for comparison
-    latest_version_tuple, latest_dev = version_to_tuple(latest_tag)
-    current_version_tuple, current_dev = version_to_tuple(current_version)
+    latest_version_tuple, latest_dev = version_to_tuple(latest_tag, suffix)
+    current_version_tuple, current_dev = version_to_tuple(current_version, suffix)
 
     # Compare base versions first
     if current_version_tuple > latest_version_tuple:
@@ -281,7 +269,6 @@ def is_new_version(current_version, latest_tag):
         return False
     else:
         return current_dev > latest_dev  # Compare dev suffixes
-
 
 def commit_and_tag_version(new_version, modified_file):
     """Create a Git tag for the new version, then commit and push the version bump to the repository only if tagging is successful."""
@@ -338,7 +325,6 @@ def commit_and_tag_version(new_version, modified_file):
         # Abort with exit status to indicate failure
         sys.exit(1)
 
-
 def main():
     if is_self_triggered():
         print(
@@ -362,7 +348,7 @@ def main():
     latest_tag = get_latest_git_tag()
 
     # Check if the current version is already a new stable release
-    if is_new_version(current_version, latest_tag):
+    if is_new_version(current_version, latest_tag, dev_suffix):
         print(
             f"Current version {current_version} is a new release compared to latest tag {latest_tag}."
         )
@@ -386,7 +372,5 @@ def main():
         # Commit and tag the new dev version
         commit_and_tag_version(new_version, modified_file)
 
-
 if __name__ == "__main__":
     main()
-
