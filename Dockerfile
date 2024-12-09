@@ -24,4 +24,5 @@ ENTRYPOINT ["/bin/bash", "-c", \
         git config --global --add safe.directory /github/workspace && \
         echo \"https://${GITHUB_TOKEN}:x-oauth-basic@github.com\" > ~/.git-credentials && \
         git config --global credential.helper 'store --file=~/.git-credentials' && \
-        DEV_SUFFIX=${1} python3 /bump_dev_version.py"]
+        python3 /bump_dev_version.py --dev-suffix=${INPUT_DEV_SUFFIX}"]
+

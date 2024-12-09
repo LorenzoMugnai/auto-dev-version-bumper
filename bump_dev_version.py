@@ -4,6 +4,7 @@ import subprocess
 import sys
 
 import toml  # Ensure 'toml' library is installed to parse pyproject.toml
+import argparse
 
 def is_self_triggered():
     """Check if the latest commit message indicates a version bump to prevent self-trigger."""
@@ -343,6 +344,11 @@ def commit_and_tag_version(new_version, modified_file):
         sys.exit(1)
 
 def main():
+    
+    parser = argparse.ArgumentParser(description="Auto dev version bumper")
+    parser.add_argument("--dev-suffix", type=str, default="-dev", help="Development suffix")
+    args = parser.parse_args()
+
     if is_self_triggered():
         print(
             "Detected self-trigger due to version bump commit. Exiting to prevent loop."
@@ -350,7 +356,12 @@ def main():
         return
 
     # Get suffix from the environment variable passed from the action
-    dev_suffix = os.getenv("DEV_SUFFIX", "-dev")
+    dev_suffix = args.dev_suffix
+
+    # Check if the dev_suffix is valid
+    if not dev_suffix or not isinstance(dev_suffix, str):
+        print("Error: DEV_SUFFIX is not provided or invalid. Exiting.")
+        sys.exit(1)
 
     # Detect package manager
     manager = detect_package_manager()
