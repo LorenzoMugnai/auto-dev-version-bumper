@@ -50,8 +50,12 @@ def get_current_version_poetry():
         sys.exit(1)
 
 def get_version_file():
-    """Identify the primary file used to store version information in a pip-based project."""
-    # Check common version file locations
+    """Identify the primary file used to store version information."""
+    # Check for the "version" file
+    if os.path.exists("version"):
+        return "version", "version_file"
+
+    # Check other common version file locations
     version_file_names = ["src/__version__.py", "__version__.py", "version.py"]
     for fname in version_file_names:
         if os.path.exists(fname):
@@ -81,9 +85,15 @@ def get_version_file():
     )
     sys.exit(1)
 
+
 def get_current_version_pip():
     """Retrieve the current version from the identified version source in a pip-based project."""
     version_file, file_type = get_version_file()
+
+    # Retrieve version from "version" file
+    if file_type == "version_file":
+        with open(version_file, "r") as file:
+            return file.read().strip()
 
     # Retrieve version from common version files
     if file_type == "file":
@@ -151,6 +161,13 @@ def bump_version_poetry(new_version):
 def bump_version_pip(new_version):
     """Update the version in the identified version source for pip-based projects and return the modified file."""
     version_file, file_type = get_version_file()
+
+    # Update version in "version" file
+    if file_type == "version_file":
+        with open(version_file, "w") as file:
+            file.write(new_version)
+        print(f"Updated version in {version_file} to {new_version}")
+        return version_file
 
     # Update version in common version files
     if file_type == "file":

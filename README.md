@@ -12,7 +12,7 @@ This action is intended to run on development branches to streamline version man
 
 1. **Detects the Package Manager**:
    - Checks if the project uses `Poetry` or a `pip`-based setup to manage versioning.
-   - Supports common version sources such as `pyproject.toml`, `setup.py`, `setup.cfg`, or `__version__.py`.
+   - Supports common version sources such as `pyproject.toml`, `setup.py`, `setup.cfg`, `version` or `__version__.py`.
 
 2. **Compares Versions**:
    - Retrieves the latest Git tag to determine the last tagged version.
