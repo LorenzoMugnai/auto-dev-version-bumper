@@ -8,6 +8,10 @@ ENV PYTHONUNBUFFERED=1
 ARG GITHUB_TOKEN
 ENV GITHUB_TOKEN=${GITHUB_TOKEN}
 
+ARG GITHUB_SHA
+ENV GITHUB_SHA=${GITHUB_SHA}
+
+
 # Install dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git && \
@@ -19,10 +23,10 @@ COPY bump_dev_version.py /bump_dev_version.py
 
 # Set the default entrypoint to execute the script, configuring Git user, authentication, and safe directory
 ENTRYPOINT ["/bin/bash", "-c", \
-    "git config --global user.email 'github-actions[bot]@users.noreply.github.com' && \
+        "git config --global user.email 'github-actions[bot]@users.noreply.github.com' && \
         git config --global user.name 'github-actions[bot]' && \
         git config --global --add safe.directory /github/workspace && \
         echo \"https://${GITHUB_TOKEN}:x-oauth-basic@github.com\" > ~/.git-credentials && \
         git config --global credential.helper 'store --file=~/.git-credentials' && \
-        python3 /bump_dev_version.py --dev-suffix=${INPUT_DEV_SUFFIX}"]
-
+        COMMIT_MSG=$(git log -1 --pretty=%B ${GITHUB_SHA}) && \
+        python3 /bump_dev_version.py --dev-suffix=${INPUT_DEV_SUFFIX} --commit-msg=\"$COMMIT_MSG\""]

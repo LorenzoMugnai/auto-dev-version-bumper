@@ -1,25 +1,11 @@
+import argparse
 import os
 import re
 import subprocess
 import sys
 
 import toml  # Ensure 'toml' library is installed to parse pyproject.toml
-import argparse
 
-def is_self_triggered():
-    """Check if the latest commit message indicates a version bump to prevent self-trigger."""
-    try:
-        result = subprocess.run(
-            ["git", "log", "-1", "--pretty=%B"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        latest_commit_message = result.stdout.strip()
-        return "Bump version to" in latest_commit_message
-    except subprocess.CalledProcessError as e:
-        print("Error retrieving latest commit message:", e)
-        return False
 
 def detect_package_manager():
     """Detect the package manager based on project files. Default to pip if Poetry isn't detected."""
@@ -36,6 +22,7 @@ def detect_package_manager():
     # Default to pip if Poetry configuration is not found
     return "pip"
 
+
 def get_current_version_poetry():
     """Retrieve the current version using Poetry."""
     try:
@@ -49,6 +36,7 @@ def get_current_version_poetry():
     except subprocess.CalledProcessError as e:
         print("Error fetching current version with Poetry:", e)
         sys.exit(1)
+
 
 def get_version_file():
     """Identify the primary file used to store version information."""
@@ -137,10 +125,12 @@ def get_current_version_pip():
     print("Version information not found in the detected file.")
     sys.exit(1)
 
+
 def increment_dev_version(version, suffix="-dev"):
     """Increment the development version for a version string."""
     match = re.match(
-        rf"^(?P<base>\d+\.\d+\.\d+)(?:{re.escape(suffix)}(?P<num>\d+))?$", version
+        rf"^(?P<base>\d+\.\d+\.\d+)(?:{re.escape(suffix)}(?P<num>\d+))?$",
+        version,
     )
     if match:
         base, num = match.group("base"), match.group("num")
@@ -150,6 +140,7 @@ def increment_dev_version(version, suffix="-dev"):
         print(f"Version '{version}' format error.")
         sys.exit(1)
 
+
 def bump_version_poetry(new_version):
     """Use Poetry to set the new version and return the modified file."""
     try:
@@ -158,6 +149,7 @@ def bump_version_poetry(new_version):
     except subprocess.CalledProcessError as e:
         print("Error bumping version with Poetry:", e)
         sys.exit(1)
+
 
 def bump_version_pip(new_version):
     """Update the version in the identified version source for pip-based projects and return the modified file."""
@@ -226,6 +218,7 @@ def bump_version_pip(new_version):
         print("No suitable version file found for pip-based project.")
         sys.exit(1)
 
+
 def get_latest_git_tag():
     """Retrieve the latest Git tag, without a 'v' prefix if present."""
     try:
@@ -245,6 +238,7 @@ def get_latest_git_tag():
         print("No tags found in the repository.")
         return None
 
+
 def version_to_tuple(version, suffix="-dev"):
     """Convert a version string into a tuple of integers and handle custom suffix."""
     match = re.match(rf"(\d+\.\d+\.\d+)(?:{re.escape(suffix)}(\d+))?", version)
@@ -254,6 +248,7 @@ def version_to_tuple(version, suffix="-dev"):
         return base_version, dev_suffix
     else:
         raise ValueError(f"Invalid version format: {version}")
+
 
 def is_new_version(current_version, latest_tag, suffix="-dev"):
     """Compare current version with the latest Git tag version, handling custom suffixes correctly."""
@@ -270,7 +265,9 @@ def is_new_version(current_version, latest_tag, suffix="-dev"):
 
     # Convert to tuples for comparison
     latest_version_tuple, latest_dev = version_to_tuple(latest_tag, suffix)
-    current_version_tuple, current_dev = version_to_tuple(current_version, suffix)
+    current_version_tuple, current_dev = version_to_tuple(
+        current_version, suffix
+    )
 
     # Compare base versions first
     if current_version_tuple > latest_version_tuple:
@@ -287,6 +284,7 @@ def is_new_version(current_version, latest_tag, suffix="-dev"):
         return False
     else:
         return current_dev > latest_dev  # Compare dev suffixes
+
 
 def commit_and_tag_version(new_version, modified_file):
     """Create a Git tag for the new version, then commit and push the version bump to the repository only if tagging is successful."""
@@ -343,13 +341,29 @@ def commit_and_tag_version(new_version, modified_file):
         # Abort with exit status to indicate failure
         sys.exit(1)
 
+
+def is_self_triggered(commit_msg):
+    """Check if the commit message indicates a version bump or a 'no bump' message to prevent self-trigger."""
+    keywords_to_avoid = ["Bump version to", "no bump"]
+    return any(keyword in commit_msg for keyword in keywords_to_avoid)
+
+
 def main():
-    
+
     parser = argparse.ArgumentParser(description="Auto dev version bumper")
-    parser.add_argument("--dev-suffix", type=str, default="-dev", help="Development suffix")
+    parser.add_argument(
+        "--dev-suffix", type=str, default="-dev", help="Development suffix"
+    )
+    parser.add_argument(
+        "--commit-msg", type=str, required=True, help="Commit message"
+    )
+
     args = parser.parse_args()
 
-    if is_self_triggered():
+    commit_msg = args.commit_msg
+    print("latest commit message:", commit_msg)
+
+    if is_self_triggered(commit_msg):
         print(
             "Detected self-trigger due to version bump commit. Exiting to prevent loop."
         )
@@ -399,6 +413,7 @@ def main():
 
         # Commit and tag the new dev version
         commit_and_tag_version(new_version, modified_file)
+
 
 if __name__ == "__main__":
     main()

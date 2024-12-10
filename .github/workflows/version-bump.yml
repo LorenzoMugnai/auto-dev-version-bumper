@@ -30,3 +30,4 @@ jobs:
           dev_suffix: "-dev"  # Customize the suffix here
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass GITHUB_TOKEN explicitly
+          GITHUB_SHA: ${{ github.event.after }}

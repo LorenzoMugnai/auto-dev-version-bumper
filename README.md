@@ -10,17 +10,21 @@ This action is intended to run on development branches to streamline version man
 
 ## How It Works
 
-1. **Detects the Package Manager**:
+
+1. **Check if it needs to run**
+   - Checks if the latest commit contains "Bump version to" or "no bump". If so, the Action is not activated.
+
+2. **Detects the Package Manager**:
    - Checks if the project uses `Poetry` or a `pip`-based setup to manage versioning.
    - Supports common version sources such as `pyproject.toml`, `setup.py`, `setup.cfg`, `version` or `__version__.py`.
 
-2. **Compares Versions**:
+3. **Compares Versions**:
    - Retrieves the latest Git tag to determine the last tagged version.
    - Compares the current version in the code with the latest Git tag:
      - If the current version is higher than the latest tag, it’s tagged directly as a new stable release.
      - If the current version matches the latest tag, it increments to a `-dev` version.
 
-3. **Commits and Tags the New Version**:
+4. **Commits and Tags the New Version**:
    - After determining the appropriate version (either new stable or `-dev`), it **creates a new commit with the version update** and generates a Git tag.
    - The commit message will indicate the version change (e.g., "Bump version to 1.0.1-dev1"), providing a clear version history in the repository.
 
@@ -50,11 +54,12 @@ jobs:
           fetch-depth: 0 
 
       - name: Run auto-dev-version-bumper
-        uses: LorenzoMugnai/auto-dev-version-bumper@v1
+        uses: LorenzoMugnai/auto-dev-version-bumper@v1.1
         with:
           dev_suffix: "-beta"  # Optional: Customize the development suffix (defaults to "-dev")
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
+          GITHUB_SHA: ${{ github.event.after }}
 ```
 
 ## Inputs
@@ -83,11 +88,12 @@ jobs:
 >          fetch-depth: 0 
 >
 >      - name: Run auto-dev-version-bumper
->        uses: LorenzoMugnai/auto-dev-version-bumper@v1
+>        uses: LorenzoMugnai/auto-dev-version-bumper@v1.1
 >        with:
 >          dev_suffix: "-beta"  # Optional: Customize the development suffix (defaults to "-dev")
 >        env:
 >          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass GITHUB_TOKEN explicitly
+>          GITHUB_SHA: ${{ github.event.after }} # Pass the commit SHA
 >```
 
 ## Version Bumping Rules
@@ -103,7 +109,7 @@ The action follows these rules for version comparison and bumping:
 
 ### Case 1: stable release to first development version
 
-- **Current Version**: `1.0.1` 
+- **Current Version**: `1.0.1`
 - **Latest Tag**: `1.0.1`
 - **Outcome**: The action creates a new `-dev` version and tags it as `1.0.1-dev1` to signify continued development.
 
