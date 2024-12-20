@@ -54,7 +54,7 @@ jobs:
           fetch-depth: 0 
 
       - name: Run auto-dev-version-bumper
-        uses: LorenzoMugnai/auto-dev-version-bumper@v1.1
+        uses: LorenzoMugnai/auto-dev-version-bumper@v1.2
         with:
           dev_suffix: "-beta"  # Optional: Customize the development suffix (defaults to "-dev")
         env:
@@ -88,7 +88,7 @@ jobs:
 >          fetch-depth: 0 
 >
 >      - name: Run auto-dev-version-bumper
->        uses: LorenzoMugnai/auto-dev-version-bumper@v1.1
+>        uses: LorenzoMugnai/auto-dev-version-bumper@v1.2
 >        with:
 >          dev_suffix: "-beta"  # Optional: Customize the development suffix (defaults to "-dev")
 >        env:
