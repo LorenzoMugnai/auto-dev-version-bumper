@@ -221,7 +221,8 @@ def bump_version_pip(new_version):
 
 def get_latest_git_tag():
     """
-    Retrieve the latest Git tag that starts with 'v' and follows a numeric pattern (e.g., 'v1.0.0').
+    Retrieve the latest Git tag that starts with 'v' and follows a numeric pattern,
+    sorting them chronologically based on the tag creation date.
     """
     try:
         # Ensure all tags are fetched
@@ -239,24 +240,34 @@ def get_latest_git_tag():
 
         # Filter tags that match the pattern 'vX.Y.Z'
         valid_tags = [
-            tag for tag in tags if re.match(r"^v\d+\.\d+\.\d+$", tag)
+            tag for tag in tags if re.match(r"^v\d+\.\d+\.\d+(-[\w\d]+)?$", tag)
         ]
 
         if not valid_tags:
             print("No valid version tags found.")
-            return None
+            sys.exit(1)
 
-        # Sort tags by version
-        valid_tags.sort(
-            key=lambda x: tuple(map(int, x.lstrip("v").split(".")))
-        )
+        # Get the commit date for each tag
+        tag_dates = {}
+        for tag in valid_tags:
+            tag_date_result = subprocess.run(
+                ["git", "log", "-1", "--format=%ai", tag],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            tag_dates[tag] = tag_date_result.stdout.strip()
 
-        # Return the latest tag
-        return valid_tags[-1]
+        # Sort tags by date (ascending order)
+        sorted_tags = sorted(tag_dates.keys(), key=lambda t: tag_dates[t])
 
-    except subprocess.CalledProcessError:
-        print("Error fetching or processing Git tags.")
-        return None
+        # Return the latest tag (most recent)
+        return sorted_tags[-1]
+
+    except subprocess.CalledProcessError as e:
+        print("Error fetching or processing Git tags:", e)
+        sys.exit(1)
+
 
 
 def version_to_tuple(version, suffix="-dev"):
