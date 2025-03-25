@@ -8,19 +8,22 @@ import toml  # Ensure 'toml' library is installed to parse pyproject.toml
 
 
 def detect_package_manager():
-    """Detect the package manager based on project files. Default to pip if Poetry isn't detected."""
+    """Detect the package manager or project layout."""
     if os.path.exists("pyproject.toml"):
         with open("pyproject.toml", "r") as file:
             pyproject_content = toml.load(file)
-            # Check if 'poetry' is in [tool.poetry] to confirm it's a Poetry-based project
-            if (
-                "tool" in pyproject_content
-                and "poetry" in pyproject_content["tool"]
-            ):
-                return "poetry"
 
-    # Default to pip if Poetry configuration is not found
+        # Poetry
+        if "tool" in pyproject_content and "poetry" in pyproject_content["tool"]:
+            return "poetry"
+
+        # Setuptools via PEP 621
+        if "project" in pyproject_content and "version" in pyproject_content["project"]:
+            return "pep621"
+
+    # Default to pip (legacy layout with setup.py, etc.)
     return "pip"
+
 
 
 def get_current_version_poetry():
@@ -58,7 +61,17 @@ def get_version_file():
                 "tool" in pyproject_content
                 and "poetry" in pyproject_content["tool"]
             ):
-                return "pyproject.toml", "pyproject"
+                return "pyproject.toml", "poetry"
+
+    # Check pyproject.toml with PEP 621 (setuptools)
+    if os.path.exists("pyproject.toml"):
+        with open("pyproject.toml", "r") as file:
+            pyproject_content = toml.load(file)
+            if (
+                "project" in pyproject_content
+                and "version" in pyproject_content["project"]
+            ):
+                return "pyproject.toml", "pep621"
 
     # Check for setup.py
     if os.path.exists("setup.py"):
@@ -97,10 +110,16 @@ def get_current_version_pip():
                 return match.group(1)
 
     # Retrieve version from pyproject.toml
-    elif file_type == "pyproject":
+    elif file_type == "poetry":
         with open(version_file, "r") as file:
             pyproject_content = toml.load(file)
             return pyproject_content["tool"]["poetry"]["version"]
+
+    # Retrieve version from pyproject.toml using PEP 621
+    elif file_type == "pep621":
+        with open(version_file, "r") as file:
+            pyproject_content = toml.load(file)
+            return pyproject_content["project"]["version"]
 
     # Retrieve version from setup.py
     elif file_type == "setup_py":
@@ -177,7 +196,7 @@ def bump_version_pip(new_version):
         print(f"Updated version in {version_file} to {new_version}")
         return version_file
 
-    elif file_type == "pyproject":
+    elif file_type == "poetry":
         with open(version_file, "r") as file:
             pyproject_content = toml.load(file)
         pyproject_content["tool"]["poetry"]["version"] = new_version
@@ -185,6 +204,16 @@ def bump_version_pip(new_version):
             toml.dump(pyproject_content, file)
         print(f"Updated version in pyproject.toml to {new_version}")
         return "pyproject.toml"
+
+    elif file_type == "pep621":
+        with open(version_file, "r") as file:
+            pyproject_content = toml.load(file)
+        pyproject_content["project"]["version"] = new_version
+        with open(version_file, "w") as file:
+            toml.dump(pyproject_content, file)
+        print(f"Updated version in pyproject.toml (PEP 621) to {new_version}")
+        return "pyproject.toml"
+
 
     elif file_type == "setup_py":
         with open(version_file, "r") as file:
