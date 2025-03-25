@@ -443,8 +443,12 @@ def main():
     # Get current version
     if manager == "poetry":
         current_version = get_current_version_poetry()
-    elif manager == "pip":
+    elif manager in ("pip", "pep621"):
         current_version = get_current_version_pip()
+    else:
+        print(f"Unknown package manager: {manager}")
+        sys.exit(1)
+
 
     # Get the latest Git tag
     latest_tag = get_latest_git_tag()
@@ -468,8 +472,12 @@ def main():
         # Determine which file to modify based on package manager
         if manager == "poetry":
             modified_file = bump_version_poetry(new_version)
-        elif manager == "pip":
+        elif manager in ("pip", "pep621"):
             modified_file = bump_version_pip(new_version)
+        else:
+            print(f"Unknown package manager: {manager}")
+            sys.exit(1)
+
 
         # Commit and tag the new dev version
         commit_and_tag_version(new_version, modified_file)
